@@ -6,7 +6,8 @@ type HeatConfig struct {
 	OSAuthUrl    string
 	OSUsername   string
 	OSPassword   string
-	OSTenantID   string
+	OSTenantId   string
+	Timeout      int
 }
 
 type HeatStack struct {

@@ -10,8 +10,8 @@ import (
 
 	"time"
 
-	"github.com/metral/corekube-travis/rax"
-	"github.com/metral/corekube-travis/util"
+	"github.com/metral/goheat/rax"
+	"github.com/metral/goheat/util"
 	"github.com/metral/goutils"
 )
 
@@ -19,10 +19,10 @@ var (
 	templateFilepath = flag.String("templateFilePath", "", "Filepath of corekube-heat.yaml")
 )
 
-func getStackDetails(result *util.CreateStackResult) util.StackDetails {
+func getStackDetails(config *util.HeatConfig, result *util.CreateStackResult) util.StackDetails {
 	var details util.StackDetails
 	url := (*result).Stack.Links[0].Href
-	token := rax.IdentitySetup()
+	token := rax.IdentitySetup(config)
 
 	headers := map[string]string{
 		"X-Auth-Token": token.ID,
@@ -46,13 +46,13 @@ func getStackDetails(result *util.CreateStackResult) util.StackDetails {
 	return details
 }
 
-func watchStackCreation(result *util.CreateStackResult) util.StackDetails {
+func watchStackCreation(config *util.HeatConfig, result *util.CreateStackResult) util.StackDetails {
 	sleepDuration := 10 // seconds
 	var details util.StackDetails
 
 watchLoop:
 	for {
-		details = getStackDetails(result)
+		details = getStackDetails(config, result)
 		log.Printf("Stack Status: %s", details.Stack.StackStatus)
 
 		switch details.Stack.StackStatus {
@@ -63,7 +63,7 @@ watchLoop:
 		default:
 			log.Printf("Stack Status: %s", details.Stack.StackStatus)
 			log.Printf("Stack Status: %s", details.Stack.StackStatusReason)
-			deleteStack(result.Stack.Links[0].Href)
+			deleteStack(config, result.Stack.Links[0].Href)
 			log.Fatal()
 		}
 	}
@@ -71,19 +71,19 @@ watchLoop:
 	return details
 }
 
-func StartStackTimeout(heatTimeout int, result *util.CreateStackResult) util.StackDetails {
+func StartStackTimeout(config *util.HeatConfig, result *util.CreateStackResult) util.StackDetails {
 	chan1 := make(chan util.StackDetails, 1)
 	go func() {
-		stackDetails := watchStackCreation(result)
+		stackDetails := watchStackCreation(config, result)
 		chan1 <- stackDetails
 	}()
 
 	select {
 	case result := <-chan1:
 		return result
-	case <-time.After(time.Duration(heatTimeout) * time.Minute):
-		msg := fmt.Sprintf("Stack create timed out after %d mins", heatTimeout)
-		deleteStack(result.Stack.Links[0].Href)
+	case <-time.After(time.Duration(config.Timeout) * time.Minute):
+		msg := fmt.Sprintf("Stack create timed out after %d mins", config.Timeout)
+		deleteStack(config, result.Stack.Links[0].Href)
 		log.Fatal(msg)
 	}
 	return *new(util.StackDetails)
@@ -128,14 +128,14 @@ func createStackReq(template, token, keyName string) (int, []byte) {
 	return statusCode, bodyBytes
 }
 
-func CreateStack(c *util.HeatConfig) util.CreateStackResult {
-	readfile, _ := ioutil.ReadFile(u.TemplateFile)
+func CreateStack(config *util.HeatConfig) util.CreateStackResult {
+	readfile, _ := ioutil.ReadFile(config.TemplateFile)
 	template := string(readfile)
 	var result util.CreateStackResult
 
-	token := rax.IdentitySetup(c)
+	token := rax.IdentitySetup(config)
 
-	statusCode, bodyBytes := createStackReq(template, token.ID, u.Keypair)
+	statusCode, bodyBytes := createStackReq(template, token.ID, config.Keypair)
 
 	switch statusCode {
 	case 201:
@@ -157,8 +157,8 @@ func extractOverlordIP(details util.StackDetails) string {
 	return overlordIP
 }
 
-func deleteStack(stackUrl string) {
-	token := rax.IdentitySetup()
+func deleteStack(config *util.HeatConfig, stackUrl string) {
+	token := rax.IdentitySetup(config)
 
 	headers := map[string]string{
 		"X-Auth-Token": token.ID,
