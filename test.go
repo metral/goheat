@@ -63,7 +63,7 @@ watchLoop:
 		default:
 			log.Printf("Stack Status: %s", details.Stack.StackStatus)
 			log.Printf("Stack Status: %s", details.Stack.StackStatusReason)
-			deleteStack(config, result.Stack.Links[0].Href)
+			DeleteStack(config, result.Stack.Links[0].Href)
 			log.Fatal()
 		}
 	}
@@ -83,7 +83,7 @@ func StartStackTimeout(config *util.HeatConfig, result *util.CreateStackResult) 
 		return result
 	case <-time.After(time.Duration(config.Timeout) * time.Minute):
 		msg := fmt.Sprintf("Stack create timed out after %d mins", config.Timeout)
-		deleteStack(config, result.Stack.Links[0].Href)
+		DeleteStack(config, result.Stack.Links[0].Href)
 		log.Fatal(msg)
 	}
 	return *new(util.StackDetails)
@@ -157,7 +157,7 @@ func extractOverlordIP(details util.StackDetails) string {
 	return overlordIP
 }
 
-func deleteStack(config *util.HeatConfig, stackUrl string) {
+func DeleteStack(config *util.HeatConfig, stackUrl string) {
 	token := rax.IdentitySetup(config)
 
 	headers := map[string]string{
