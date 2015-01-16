@@ -9,14 +9,14 @@ func GetFunctionName(i interface{}) string {
 	return runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
 }
 
-func ExtractOverlordIP(details StackDetails) string {
-	overlordIP := ""
+func ExtractValue(details StackDetails, key string) interface{} {
+	var value interface{}
 
 	for _, i := range details.Stack.Outputs {
-		if i.OutputKey == "overlord_ip" {
-			overlordIP = i.OutputValue.(string)
+		if i.OutputKey == key {
+			value = i.OutputValue
 		}
 	}
 
-	return overlordIP
+	return value
 }
