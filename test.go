@@ -89,11 +89,20 @@ func StartStackTimeout(config *util.HeatConfig, result *util.CreateStackResult) 
 	return *new(util.StackDetails)
 }
 
-func createStackReq(template, token, keyName string) (int, []byte) {
+func createStackReq(
+	template, token, keypair string, extraParams *map[string]string) (int, []byte) {
+
 	timeout := int(10)
 	params := map[string]string{
-		"key-name": keyName,
+		"key-name": keypair,
 	}
+
+	if len(*extraParams) > 0 {
+		for k, v := range *extraParams {
+			params[k] = v
+		}
+	}
+
 	disableRollback := bool(false)
 
 	timestamp := int32(time.Now().Unix())
@@ -128,14 +137,17 @@ func createStackReq(template, token, keyName string) (int, []byte) {
 	return statusCode, bodyBytes
 }
 
-func CreateStack(config *util.HeatConfig) util.CreateStackResult {
+func CreateStack(
+	params *map[string]string, config *util.HeatConfig) util.CreateStackResult {
+
 	readfile, _ := ioutil.ReadFile(config.TemplateFile)
 	template := string(readfile)
 	var result util.CreateStackResult
 
 	token := rax.IdentitySetup(config)
 
-	statusCode, bodyBytes := createStackReq(template, token.ID, config.Keypair)
+	statusCode, bodyBytes := createStackReq(
+		template, token.ID, config.Keypair, params)
 
 	switch statusCode {
 	case 201:
