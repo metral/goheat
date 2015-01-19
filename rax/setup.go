@@ -17,13 +17,15 @@ func IdentitySetup(c *util.HeatConfig) *tokens.Token {
 	}
 
 	provider, err := openstack.AuthenticatedClient(authOpts)
-	goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 1})
+	goutils.PrintErrors(
+		goutils.ErrorParams{Err: err, CallerNum: 2, Fatal: false})
 
 	client := openstack.NewIdentityV2(provider)
 
 	opts := tokens.WrapOptions(authOpts)
 	token, err := tokens.Create(client, opts).ExtractToken()
-	goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 1})
+	goutils.PrintErrors(
+		goutils.ErrorParams{Err: err, CallerNum: 2, Fatal: false})
 
 	return token
 }

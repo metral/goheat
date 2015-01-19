@@ -35,12 +35,13 @@ func getStackDetails(config *util.HeatConfig, result *util.CreateStackResult) ut
 		Headers:         headers,
 	}
 
-	statusCode, bodyBytes := goutils.HttpCreateRequest(p)
+	statusCode, bodyBytes, _ := goutils.HttpCreateRequest(p)
 
 	switch statusCode {
 	case 200:
 		err := json.Unmarshal(bodyBytes, &details)
-		goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 1})
+		goutils.PrintErrors(
+			goutils.ErrorParams{Err: err, CallerNum: 2, Fatal: false})
 	}
 
 	return details
@@ -133,7 +134,7 @@ func createStackReq(
 		Headers:         headers,
 	}
 
-	statusCode, bodyBytes := goutils.HttpCreateRequest(h)
+	statusCode, bodyBytes, _ := goutils.HttpCreateRequest(h)
 	return statusCode, bodyBytes
 }
 
@@ -152,7 +153,8 @@ func CreateStack(
 	switch statusCode {
 	case 201:
 		err := json.Unmarshal(bodyBytes, &result)
-		goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 1})
+		goutils.PrintErrors(
+			goutils.ErrorParams{Err: err, CallerNum: 2, Fatal: false})
 	}
 	return result
 }
@@ -183,7 +185,7 @@ func DeleteStack(config *util.HeatConfig, stackUrl string) {
 		Headers:         headers,
 	}
 
-	statusCode, _ := goutils.HttpCreateRequest(p)
+	statusCode, _, _ := goutils.HttpCreateRequest(p)
 
 	switch statusCode {
 	case 204:
