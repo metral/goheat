@@ -36,6 +36,7 @@ func getStackDetails(config *util.HeatConfig, result *util.CreateStackResult) ut
 	}
 
 	statusCode, bodyBytes, _ := goutils.HttpCreateRequest(p)
+	log.Printf("status:%d\nbody:%v", statusCode, bodyBytes)
 
 	switch statusCode {
 	case 200:
