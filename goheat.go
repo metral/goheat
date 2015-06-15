@@ -135,6 +135,7 @@ func createStackReq(
 	}
 
 	statusCode, bodyBytes, _ := goutils.HttpCreateRequest(h)
+	log.Printf("Stack Create: status: %d\nbodyBytes: %s", statusCode, bodyBytes)
 	return statusCode, bodyBytes
 }
 
