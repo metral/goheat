@@ -1,9 +1,6 @@
 {
 	"ImportPath": "github.com/metral/goheat",
-	"GoVersion": "go1.4",
-	"Packages": [
-		"./..."
-	],
+	"GoVersion": "go1.5",
 	"Deps": [
 		{
 			"ImportPath": "github.com/metral/goutils",
